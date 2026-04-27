@@ -1,0 +1,373 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Features - AI Code Reviewer{% endblock %}
+
+{% block extra_css %}
+<style>
+    .features-page {
+        min-height: 100vh;
+        padding: 2rem;
+        background: #0A0F1C;
+    }
+
+    .features-container {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .page-header {
+        text-align: center;
+        margin-bottom: 4rem;
+    }
+
+    .page-header h1 {
+        font-size: 3rem;
+        font-weight: 700;
+        color: #FFFFFF;
+        margin-bottom: 1rem;
+    }
+
+    .page-header p {
+        color: #A0AEC0;
+        font-size: 1.25rem;
+    }
+
+    .feature-section {
+        margin-bottom: 4rem;
+    }
+
+    .feature-card {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 3rem;
+        align-items: center;
+        background: rgba(21, 31, 46, 0.8);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 24px;
+        padding: 3rem;
+        margin-bottom: 2rem;
+    }
+
+    .feature-card.reverse {
+        direction: rtl;
+    }
+
+    .feature-card.reverse > * {
+        direction: ltr;
+    }
+
+    .feature-content h2 {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #FFFFFF;
+        margin-bottom: 1rem;
+    }
+
+    .feature-content p {
+        color: #A0AEC0;
+        line-height: 1.8;
+        margin-bottom: 1.5rem;
+    }
+
+    .feature-list {
+        list-style: none;
+        padding: 0;
+    }
+
+    .feature-list li {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        color: #A0AEC0;
+        margin-bottom: 0.75rem;
+    }
+
+    .feature-list li i {
+        color: #00D9FF;
+    }
+
+    .feature-visual {
+        background: rgba(10, 15, 28, 0.8);
+        border-radius: 16px;
+        padding: 2rem;
+        min-height: 300px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .visual-icon {
+        font-size: 6rem;
+        background: linear-gradient(135deg, #00D9FF 0%, #7B2CBF 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    /* Code Preview in Feature */
+    .code-preview {
+        width: 100%;
+        background: rgba(10, 15, 28, 0.9);
+        border-radius: 12px;
+        padding: 1.5rem;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.875rem;
+        line-height: 1.6;
+    }
+
+    .code-preview .keyword { color: #7B2CBF; }
+    .code-preview .function { color: #00D9FF; }
+    .code-preview .string { color: #00C853; }
+    .code-preview .comment { color: #6B7280; }
+    .code-preview .error { color: #FF5252; }
+
+    .highlight-section {
+        background: linear-gradient(135deg, #0D1B2A 0%, #1B263B 100%);
+        border-radius: 24px;
+        padding: 4rem;
+        margin-bottom: 4rem;
+        text-align: center;
+    }
+
+    .highlight-section h2 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #FFFFFF;
+        margin-bottom: 1rem;
+    }
+
+    .highlight-section p {
+        color: #A0AEC0;
+        font-size: 1.125rem;
+        margin-bottom: 2rem;
+    }
+
+    .tech-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 1.5rem;
+        margin-top: 3rem;
+    }
+
+    .tech-item {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 12px;
+        padding: 1.5rem;
+        text-align: center;
+    }
+
+    .tech-item i {
+        font-size: 2rem;
+        color: #00D9FF;
+        margin-bottom: 0.75rem;
+    }
+
+    .tech-item span {
+        color: #A0AEC0;
+        font-size: 0.875rem;
+    }
+
+    @media (max-width: 768px) {
+        .feature-card {
+            grid-template-columns: 1fr;
+            gap: 2rem;
+        }
+
+        .feature-card.reverse {
+            direction: ltr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="features-page">
+    <div class="features-container">
+        <div class="page-header">
+            <h1>Powerful Features</h1>
+            <p>Everything you need to improve your code quality</p>
+        </div>
+
+        <!-- Feature 1: Bug Detection -->
+        <div class="feature-section">
+            <div class="feature-card">
+                <div class="feature-content">
+                    <h2><i class="fas fa-bug"></i> Bug Detection</h2>
+                    <p>Our AI analyzes your code to identify common bugs and issues that could cause runtime errors or unexpected behavior.</p>
+                    <ul class="feature-list">
+                        <li><i class="fas fa-check-circle"></i> Detect mutable default arguments</li>
+                        <li><i class="fas fa-check-circle"></i> Find unused variables</li>
+                        <li><i class="fas fa-check-circle"></i> Identify shadowing built-ins</li>
+                        <li><i class="fas fa-check-circle"></i> Spot comparison errors (= vs ==)</li>
+                    </ul>
+                </div>
+                <div class="feature-visual">
+                    <div class="code-preview">
+<span class="comment"># Bug Detection Example</span>
+<span class="keyword">def</span> <span class="function">bad_function</span>(items=[]):  <span class="error">⚠ Mutable default!</span>
+    <span class="keyword">for</span> item <span class="keyword">in</span> items:
+        <span class="function">print</span>(item)
+    <span class="keyword">return</span> items
+
+<span class="comment"># Fixed version</span>
+<span class="keyword">def</span> <span class="function">good_function</span>(items=<span class="keyword">None</span>):
+    <span class="keyword">if</span> items <span class="keyword">is None</span>:
+        items = []
+    <span class="keyword">for</span> item <span class="keyword">in</span> items:
+        <span class="function">print</span>(item)
+    <span class="keyword">return</span> items
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Feature 2: Security Analysis -->
+        <div class="feature-section">
+            <div class="feature-card reverse">
+                <div class="feature-content">
+                    <h2><i class="fas fa-shield-alt"></i> Security Analysis</h2>
+                    <p>Protect your applications from security vulnerabilities with our comprehensive security scanning.</p>
+                    <ul class="feature-list">
+                        <li><i class="fas fa-check-circle"></i> Detect hardcoded credentials</li>
+                        <li><i class="fas fa-check-circle"></i> Identify SQL injection risks</li>
+                        <li><i class="fas fa-check-circle"></i> Find dangerous eval() usage</li>
+                        <li><i class="fas fa-check-circle"></i> Spot unsafe pickle operations</li>
+                    </ul>
+                </div>
+                <div class="feature-visual">
+                    <div class="code-preview">
+<span class="comment"># Security Issues Found</span>
+password = <span class="string">"hardcoded123"</span>  <span class="error">⚠ Hardcoded!</span>
+
+query = <span class="string">"SELECT * FROM users WHERE id="</span> + user_id
+<span class="error">⚠ SQL Injection risk!</span>
+
+<span class="function">eval</span>(user_input)  <span class="error">⚠ Dangerous!</span>
+
+<span class="comment"># Fixed version</span>
+<span class="keyword">import</span> os
+password = os.<span class="function">getenv</span>(<span class="string">'PASSWORD'</span>)
+
+cursor.<span class="function">execute</span>(
+    <span class="string">"SELECT * FROM users WHERE id=%s"</span>,
+    (user_id,)
+)
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Feature 3: Performance Tips -->
+        <div class="feature-section">
+            <div class="feature-card">
+                <div class="feature-content">
+                    <h2><i class="fas fa-tachometer-alt"></i> Performance Optimization</h2>
+                    <p>Get actionable suggestions to optimize your code for better performance and efficiency.</p>
+                    <ul class="feature-list">
+                        <li><i class="fas fa-check-circle"></i> Identify inefficient loops</li>
+                        <li><i class="fas fa-check-circle"></i> Find string concatenation issues</li>
+                        <li><i class="fas fa-check-circle"></i> Detect repeated function calls</li>
+                        <li><i class="fas fa-check-circle"></i> Suggest list comprehensions</li>
+                    </ul>
+                </div>
+                <div class="feature-visual">
+                    <div class="code-preview">
+<span class="comment"># Performance Issues</span>
+result = <span class="string">""</span>
+<span class="keyword">for</span> item <span class="keyword">in</span> items:
+    result += item  <span class="error">⚠ Slow!</span>
+
+<span class="comment"># Fixed version</span>
+result = <span class="string">''</span>.<span class="function">join</span>(items)
+
+<span class="comment"># len() in loop</span>
+<span class="keyword">for</span> i <span class="keyword">in</span> <span class="function">range</span>(<span class="function">len</span>(items)):  <span class="error">⚠</span>
+    <span class="function">print</span>(items[i])
+
+<span class="comment"># Fixed version</span>
+n = <span class="function">len</span>(items)
+<span class="keyword">for</span> i <span class="keyword">in</span> <span class="function">range</span>(n):
+    <span class="function">print</span>(items[i])
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Feature 4: Code Style -->
+        <div class="feature-section">
+            <div class="feature-card reverse">
+                <div class="feature-content">
+                    <h2><i class="fas fa-code"></i> Code Style & Best Practices</h2>
+                    <p>Ensure your code follows best practices and coding standards with comprehensive style checks.</p>
+                    <ul class="feature-list">
+                        <li><i class="fas fa-check-circle"></i> PEP 8 compliance checking</li>
+                        <li><i class="fas fa-check-circle"></i> Line length validation</li>
+                        <li><i class="fas fa-check-circle"></i> Naming convention checks</li>
+                        <li><i class="fas fa-check-circle"></i> Docstring verification</li>
+                    </ul>
+                </div>
+                <div class="feature-visual">
+                    <div class="code-preview">
+<span class="comment"># Style Issues</span>
+x=1;y=2;z=3  <span class="error">⚠ Multiple on one line</span>
+
+<span class="function">print</span>(<span class="string">"hello"</span>)  <span class="error">⚠ Use logging</span>
+
+<span class="comment"># TODO: fix this  <span class="error">⚠ TODO comment</span></span>
+
+<span class="comment"># Fixed version</span>
+x = 1
+y = 2
+z = 3
+
+<span class="keyword">import</span> logging
+logger = logging.<span class="function">getLogger</span>(__name__)
+logger.<span class="function">info</span>(<span class="string">"hello"</span>)
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Technologies -->
+        <div class="highlight-section">
+            <h2>Supported Languages</h2>
+            <p>AI Code Reviewer supports multiple programming languages</p>
+            <div class="tech-grid">
+                <div class="tech-item">
+                    <i class="fab fa-python"></i>
+                    <span>Python</span>
+                </div>
+                <div class="tech-item">
+                    <i class="fab fa-js"></i>
+                    <span>JavaScript</span>
+                </div>
+                <div class="tech-item">
+                    <i class="fab fa-java"></i>
+                    <span>Java</span>
+                </div>
+                <div class="tech-item">
+                    <i class="fas fa-code"></i>
+                    <span>C++</span>
+                </div>
+                <div class="tech-item">
+                    <i class="fas fa-code"></i>
+                    <span>C#</span>
+                </div>
+                <div class="tech-item">
+                    <i class="fab fa-golang"></i>
+                    <span>Go</span>
+                </div>
+                <div class="tech-item">
+                    <i class="fab fa-rust"></i>
+                    <span>Rust</span>
+                </div>
+                <div class="tech-item">
+                    <i class="fab fa-ruby"></i>
+                    <span>Ruby</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

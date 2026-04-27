@@ -1,0 +1,617 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Dashboard - AI Code Reviewer{% endblock %}
+
+{% block extra_css %}
+<style>
+    .dashboard {
+        display: flex;
+        min-height: 100vh;
+        background: #0A0F1C;
+    }
+
+    /* Sidebar */
+    .sidebar {
+        width: 280px;
+        background: #151F2E;
+        border-right: 1px solid rgba(255, 255, 255, 0.05);
+        padding: 2rem 0;
+        position: fixed;
+        height: 100vh;
+        overflow-y: auto;
+    }
+
+    .sidebar-header {
+        padding: 0 1.5rem 2rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .user-profile {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .user-avatar {
+        width: 60px;
+        height: 60px;
+        background: linear-gradient(135deg, #00D9FF 0%, #7B2CBF 100%);
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #0A0F1C;
+    }
+
+    .user-info h3 {
+        color: #FFFFFF;
+        font-size: 1.125rem;
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+    }
+
+    .user-info p {
+        color: #A0AEC0;
+        font-size: 0.875rem;
+    }
+
+    .sidebar-nav {
+        padding: 1.5rem 0;
+    }
+
+    .nav-section {
+        margin-bottom: 1.5rem;
+    }
+
+    .nav-section-title {
+        padding: 0 1.5rem;
+        color: #6B7280;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 0.75rem;
+    }
+
+    .nav-link {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.875rem 1.5rem;
+        color: #A0AEC0;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        border-left: 3px solid transparent;
+    }
+
+    .nav-link:hover,
+    .nav-link.active {
+        background: rgba(0, 217, 255, 0.1);
+        color: #00D9FF;
+        border-left-color: #00D9FF;
+    }
+
+    .nav-link i {
+        width: 20px;
+        text-align: center;
+    }
+
+    /* Main Content */
+    .main-content {
+        flex: 1;
+        margin-left: 280px;
+        padding: 2rem;
+    }
+
+    .dashboard-header {
+        margin-bottom: 2rem;
+    }
+
+    .dashboard-header h1 {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #FFFFFF;
+        margin-bottom: 0.5rem;
+    }
+
+    .dashboard-header p {
+        color: #A0AEC0;
+    }
+
+    /* Stats Grid */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .stat-card {
+        background: rgba(21, 31, 46, 0.8);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 16px;
+        padding: 1.5rem;
+        transition: all 0.3s ease;
+    }
+
+    .stat-card:hover {
+        border-color: rgba(0, 217, 255, 0.3);
+        transform: translateY(-5px);
+    }
+
+    .stat-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+
+    .stat-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+    }
+
+    .stat-icon.blue {
+        background: rgba(0, 217, 255, 0.2);
+        color: #00D9FF;
+    }
+
+    .stat-icon.purple {
+        background: rgba(123, 44, 191, 0.2);
+        color: #7B2CBF;
+    }
+
+    .stat-icon.green {
+        background: rgba(0, 200, 83, 0.2);
+        color: #00C853;
+    }
+
+    .stat-icon.orange {
+        background: rgba(255, 179, 0, 0.2);
+        color: #FFB300;
+    }
+
+    .stat-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #FFFFFF;
+        margin-bottom: 0.25rem;
+    }
+
+    .stat-label {
+        color: #A0AEC0;
+        font-size: 0.875rem;
+    }
+
+    /* Content Grid */
+    .content-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 1.5rem;
+    }
+
+    .card {
+        background: rgba(21, 31, 46, 0.8);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 16px;
+        overflow: hidden;
+    }
+
+    .card-header {
+        padding: 1.5rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .card-header h2 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #FFFFFF;
+    }
+
+    .card-header a {
+        color: #00D9FF;
+        text-decoration: none;
+        font-size: 0.875rem;
+    }
+
+    .card-body {
+        padding: 1.5rem;
+    }
+
+    /* Quick Review Form */
+    .quick-review-form {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .code-input {
+        width: 100%;
+        min-height: 150px;
+        padding: 1rem;
+        background: rgba(10, 15, 28, 0.8);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        color: #FFFFFF;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.875rem;
+        resize: vertical;
+    }
+
+    .code-input:focus {
+        outline: none;
+        border-color: #00D9FF;
+    }
+
+    .form-row {
+        display: flex;
+        gap: 1rem;
+    }
+
+    .language-select {
+        flex: 1;
+        padding: 0.875rem 1rem;
+        background: rgba(10, 15, 28, 0.8);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        color: #FFFFFF;
+        font-size: 1rem;
+        cursor: pointer;
+    }
+
+    .btn-review {
+        padding: 0.875rem 1.5rem;
+        background: linear-gradient(135deg, #00D9FF 0%, #7B2CBF 100%);
+        border: none;
+        border-radius: 12px;
+        color: #0A0F1C;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .btn-review:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 30px rgba(0, 217, 255, 0.3);
+    }
+
+    /* Recent Reviews Table */
+    .reviews-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .reviews-table th,
+    .reviews-table td {
+        padding: 1rem;
+        text-align: left;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .reviews-table th {
+        color: #6B7280;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+
+    .reviews-table td {
+        color: #FFFFFF;
+        font-size: 0.875rem;
+    }
+
+    .language-badge {
+        padding: 0.25rem 0.75rem;
+        background: rgba(0, 217, 255, 0.2);
+        border-radius: 20px;
+        font-size: 0.75rem;
+        color: #00D9FF;
+    }
+
+    .score-badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .score-badge.high {
+        background: rgba(0, 200, 83, 0.2);
+        color: #00C853;
+    }
+
+    .score-badge.medium {
+        background: rgba(255, 179, 0, 0.2);
+        color: #FFB300;
+    }
+
+    .score-badge.low {
+        background: rgba(255, 82, 82, 0.2);
+        color: #FF5252;
+    }
+
+    /* Activity Timeline */
+    .activity-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .activity-item {
+        display: flex;
+        gap: 1rem;
+        padding: 1rem;
+        background: rgba(10, 15, 28, 0.5);
+        border-radius: 12px;
+    }
+
+    .activity-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+    }
+
+    .activity-icon.review {
+        background: rgba(0, 217, 255, 0.2);
+        color: #00D9FF;
+    }
+
+    .activity-icon.snippet {
+        background: rgba(123, 44, 191, 0.2);
+        color: #7B2CBF;
+    }
+
+    .activity-icon.login {
+        background: rgba(0, 200, 83, 0.2);
+        color: #00C853;
+    }
+
+    .activity-content h4 {
+        color: #FFFFFF;
+        font-size: 0.875rem;
+        font-weight: 500;
+        margin-bottom: 0.25rem;
+    }
+
+    .activity-content p {
+        color: #6B7280;
+        font-size: 0.75rem;
+    }
+
+    @media (max-width: 1024px) {
+        .sidebar {
+            transform: translateX(-100%);
+            z-index: 100;
+        }
+
+        .main-content {
+            margin-left: 0;
+        }
+
+        .content-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="user-profile">
+                <div class="user-avatar">
+                    {{ user.first_name|slice:1 }}{{ user.last_name|slice:1 }}
+                </div>
+                <div class="user-info">
+                    <h3>{{ user.first_name }} {{ user.last_name }}</h3>
+                    <p>@{{ user.username }}</p>
+                </div>
+            </div>
+        </div>
+
+        <nav class="sidebar-nav">
+            <div class="nav-section">
+                <div class="nav-section-title">Main</div>
+                <a href="{% url 'dashboard' %}" class="nav-link active">
+                    <i class="fas fa-th-large"></i> Dashboard
+                </a>
+                <a href="{% url 'review' %}" class="nav-link">
+                    <i class="fas fa-code"></i> Code Review
+                </a>
+                <a href="{% url 'review_history' %}" class="nav-link">
+                    <i class="fas fa-history"></i> History
+                </a>
+                <a href="{% url 'snippets' %}" class="nav-link">
+                    <i class="fas fa-copy"></i> Snippets
+                </a>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">Account</div>
+                <a href="#" class="nav-link">
+                    <i class="fas fa-user"></i> Profile
+                </a>
+                <a href="#" class="nav-link">
+                    <i class="fas fa-cog"></i> Settings
+                </a>
+                <a href="{% url 'logout' %}" class="nav-link">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </a>
+            </div>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="dashboard-header">
+            <h1>Welcome back, {{ user.first_name }}! 👋</h1>
+            <p>Here's what's happening with your code reviews today.</p>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div class="stat-icon blue">
+                        <i class="fas fa-code"></i>
+                    </div>
+                </div>
+                <div class="stat-value">{{ total_reviews }}</div>
+                <div class="stat-label">Total Reviews</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div class="stat-icon purple">
+                        <i class="fas fa-bug"></i>
+                    </div>
+                </div>
+                <div class="stat-value">{{ total_issues }}</div>
+                <div class="stat-label">Issues Found</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div class="stat-icon green">
+                        <i class="fas fa-star"></i>
+                    </div>
+                </div>
+                <div class="stat-value">{{ avg_score|floatformat:0 }}</div>
+                <div class="stat-label">Avg Score</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div class="stat-icon orange">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                </div>
+                <div class="stat-value">{{ recent_activities|length }}</div>
+                <div class="stat-label">Recent Activity</div>
+            </div>
+        </div>
+
+        <!-- Content Grid -->
+        <div class="content-grid">
+            <!-- Quick Review -->
+            <div class="card">
+                <div class="card-header">
+                    <h2>Quick Code Review</h2>
+                    <a href="{% url 'review' %}">View All</a>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{% url 'review' %}" class="quick-review-form">
+                        {% csrf_token %}
+                        <textarea name="code_content" class="code-input" placeholder="Paste your code here for quick review..."></textarea>
+                        <div class="form-row">
+                            <select name="language" class="language-select">
+                                <option value="python">Python</option>
+                                <option value="javascript">JavaScript</option>
+                                <option value="java">Java</option>
+                                <option value="cpp">C++</option>
+                                <option value="csharp">C#</option>
+                                <option value="go">Go</option>
+                                <option value="rust">Rust</option>
+                                <option value="ruby">Ruby</option>
+                            </select>
+                            <button type="submit" class="btn-review">
+                                <i class="fas fa-search"></i> Analyze
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Activity Timeline -->
+            <div class="card">
+                <div class="card-header">
+                    <h2>Recent Activity</h2>
+                </div>
+                <div class="card-body">
+                    <div class="activity-list">
+                        {% for activity in recent_activities %}
+                        <div class="activity-item">
+                            <div class="activity-icon {{ activity.action }}">
+                                {% if activity.action == 'review' %}
+                                <i class="fas fa-code"></i>
+                                {% elif activity.action == 'snippet' %}
+                                <i class="fas fa-copy"></i>
+                                {% elif activity.action == 'login' %}
+                                <i class="fas fa-sign-in-alt"></i>
+                                {% else %}
+                                <i class="fas fa-user-plus"></i>
+                                {% endif %}
+                            </div>
+                            <div class="activity-content">
+                                <h4>{{ activity.get_action_display }}</h4>
+                                <p>{{ activity.created_at|timesince }} ago</p>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <p style="color: #6B7280; text-align: center; padding: 2rem;">No recent activity</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Reviews -->
+        <div class="card" style="margin-top: 1.5rem;">
+            <div class="card-header">
+                <h2>Recent Reviews</h2>
+                <a href="{% url 'review_history' %}">View All</a>
+            </div>
+            <div class="card-body">
+                <table class="reviews-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Language</th>
+                            <th>Issues</th>
+                            <th>Score</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for review in recent_reviews %}
+                        <tr>
+                            <td>{{ review.created_at|date:"M d, Y" }}</td>
+                            <td><span class="language-badge">{{ review.language }}</span></td>
+                            <td>{{ review.issues_found.total_issues|default:"0" }}</td>
+                            <td>
+                                <span class="score-badge {% if review.score >= 80 %}high{% elif review.score >= 60 %}medium{% else %}low{% endif %}">
+                                    {{ review.score }}/100
+                                </span>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" style="text-align: center; color: #6B7280; padding: 2rem;">
+                                No reviews yet. Start by submitting your first code!
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

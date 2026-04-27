@@ -1,0 +1,358 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Code Snippets - AI Code Reviewer{% endblock %}
+
+{% block extra_css %}
+<style>
+    .snippets-page {
+        min-height: 100vh;
+        padding: 2rem;
+        background: #0A0F1C;
+    }
+
+    .snippets-container {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+    }
+
+    .page-header h1 {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #FFFFFF;
+    }
+
+    .btn-primary {
+        padding: 0.875rem 1.5rem;
+        background: linear-gradient(135deg, #00D9FF 0%, #7B2CBF 100%);
+        border: none;
+        border-radius: 12px;
+        color: #0A0F1C;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 30px rgba(0, 217, 255, 0.3);
+    }
+
+    .snippets-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .snippet-card {
+        background: rgba(21, 31, 46, 0.8);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 20px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+
+    .snippet-card:hover {
+        border-color: rgba(0, 217, 255, 0.3);
+        transform: translateY(-5px);
+    }
+
+    .snippet-header {
+        padding: 1.5rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+    }
+
+    .snippet-title {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: #FFFFFF;
+        margin-bottom: 0.5rem;
+    }
+
+    .snippet-meta {
+        display: flex;
+        gap: 1rem;
+    }
+
+    .language-badge {
+        padding: 0.25rem 0.75rem;
+        background: rgba(0, 217, 255, 0.2);
+        border-radius: 20px;
+        font-size: 0.75rem;
+        color: #00D9FF;
+    }
+
+    .date-badge {
+        color: #6B7280;
+        font-size: 0.75rem;
+    }
+
+    .snippet-body {
+        padding: 1.5rem;
+    }
+
+    .code-preview {
+        background: rgba(10, 15, 28, 0.8);
+        border-radius: 12px;
+        padding: 1rem;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.75rem;
+        color: #A0AEC0;
+        max-height: 150px;
+        overflow: hidden;
+        white-space: pre-wrap;
+    }
+
+    .snippet-description {
+        color: #6B7280;
+        font-size: 0.875rem;
+        margin-top: 1rem;
+    }
+
+    .snippet-actions {
+        padding: 1rem 1.5rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.05);
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .btn-action {
+        flex: 1;
+        padding: 0.75rem;
+        border-radius: 8px;
+        border: none;
+        cursor: pointer;
+        font-size: 0.875rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        transition: all 0.3s ease;
+    }
+
+    .btn-copy {
+        background: rgba(0, 217, 255, 0.2);
+        color: #00D9FF;
+    }
+
+    .btn-copy:hover {
+        background: rgba(0, 217, 255, 0.3);
+    }
+
+    .btn-delete {
+        background: rgba(255, 82, 82, 0.2);
+        color: #FF5252;
+    }
+
+    .btn-delete:hover {
+        background: rgba(255, 82, 82, 0.3);
+    }
+
+    /* Create Snippet Form */
+    .create-section {
+        background: rgba(21, 31, 46, 0.8);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 20px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .create-section h2 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #FFFFFF;
+        margin-bottom: 1.5rem;
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+    }
+
+    .form-group {
+        margin-bottom: 1rem;
+    }
+
+    .form-group.full-width {
+        grid-column: 1 / -1;
+    }
+
+    .form-group label {
+        display: block;
+        color: #FFFFFF;
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+        font-size: 0.875rem;
+    }
+
+    .form-input {
+        width: 100%;
+        padding: 0.875rem 1rem;
+        background: rgba(10, 15, 28, 0.8);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        color: #FFFFFF;
+        font-size: 1rem;
+    }
+
+    .form-input:focus {
+        outline: none;
+        border-color: #00D9FF;
+    }
+
+    .code-textarea {
+        width: 100%;
+        min-height: 150px;
+        padding: 1rem;
+        background: rgba(10, 15, 28, 0.8);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        color: #FFFFFF;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.875rem;
+        resize: vertical;
+    }
+
+    .code-textarea:focus {
+        outline: none;
+        border-color: #00D9FF;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+    }
+
+    .empty-state i {
+        font-size: 4rem;
+        color: #6B7280;
+        margin-bottom: 1.5rem;
+    }
+
+    .empty-state h3 {
+        color: #FFFFFF;
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .empty-state p {
+        color: #6B7280;
+    }
+
+    @media (max-width: 768px) {
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .snippets-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="snippets-page">
+    <div class="snippets-container">
+        <div class="page-header">
+            <h1><i class="fas fa-copy"></i> Code Snippets</h1>
+        </div>
+
+        <!-- Create Snippet Form -->
+        <div class="create-section">
+            <h2>Create New Snippet</h2>
+            <form method="POST">
+                {% csrf_token %}
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Title</label>
+                        <input type="text" name="title" class="form-input" placeholder="Snippet title" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Language</label>
+                        <select name="language" class="form-input">
+                            <option value="python">Python</option>
+                            <option value="javascript">JavaScript</option>
+                            <option value="java">Java</option>
+                            <option value="cpp">C++</option>
+                            <option value="csharp">C#</option>
+                            <option value="go">Go</option>
+                            <option value="rust">Rust</option>
+                        </select>
+                    </div>
+                    <div class="form-group full-width">
+                        <label>Code</label>
+                        <textarea name="code" class="code-textarea" placeholder="Paste your code snippet here..." required></textarea>
+                    </div>
+                    <div class="form-group full-width">
+                        <label>Description (optional)</label>
+                        <textarea name="description" class="form-input" placeholder="Brief description of this snippet" rows="2"></textarea>
+                    </div>
+                </div>
+                <button type="submit" class="btn-primary">
+                    <i class="fas fa-plus"></i> Save Snippet
+                </button>
+            </form>
+        </div>
+
+        <!-- Snippets Grid -->
+        {% if snippets %}
+        <div class="snippets-grid">
+            {% for snippet in snippets %}
+            <div class="snippet-card">
+                <div class="snippet-header">
+                    <div>
+                        <h3 class="snippet-title">{{ snippet.title }}</h3>
+                        <div class="snippet-meta">
+                            <span class="language-badge">{{ snippet.language }}</span>
+                            <span class="date-badge">{{ snippet.created_at|date:"M d, Y" }}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="snippet-body">
+                    <div class="code-preview">{{ snippet.code }}</div>
+                    {% if snippet.description %}
+                    <p class="snippet-description">{{ snippet.description }}</p>
+                    {% endif %}
+                </div>
+                <div class="snippet-actions">
+                    <button class="btn-action btn-copy" onclick="copyToClipboard('{{ snippet.code|escapejs }}')">
+                        <i class="fas fa-copy"></i> Copy
+                    </button>
+                    <a href="{% url 'delete_snippet' snippet.id %}" class="btn-action btn-delete">
+                        <i class="fas fa-trash"></i> Delete
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <i class="fas fa-inbox"></i>
+            <h3>No Snippets Yet</h3>
+            <p>Save your frequently used code snippets for quick access.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+    function copyToClipboard(text) {
+        navigator.clipboard.writeText(text).then(() => {
+            alert('Code copied to clipboard!');
+        });
+    }
+</script>
+{% endblock %}

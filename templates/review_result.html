@@ -1,0 +1,472 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Review Results - AI Code Reviewer{% endblock %}
+
+{% block extra_css %}
+<style>
+    .results-page {
+        min-height: 100vh;
+        padding: 2rem;
+        background: #0A0F1C;
+    }
+
+    .results-container {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+    }
+
+    .page-header h1 {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #FFFFFF;
+    }
+
+    .header-actions {
+        display: flex;
+        gap: 1rem;
+    }
+
+    .btn-secondary {
+        padding: 0.75rem 1.5rem;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        color: #A0AEC0;
+        font-size: 0.875rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .btn-secondary:hover {
+        border-color: #00D9FF;
+        color: #00D9FF;
+    }
+
+    /* Score Card */
+    .score-section {
+        display: grid;
+        grid-template-columns: 300px 1fr;
+        gap: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .score-card {
+        background: rgba(21, 31, 46, 0.8);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 20px;
+        padding: 2rem;
+        text-align: center;
+    }
+
+    .score-circle {
+        width: 180px;
+        height: 180px;
+        border-radius: 50%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1.5rem;
+        position: relative;
+    }
+
+    .score-circle::before {
+        content: '';
+        position: absolute;
+        top: -10px;
+        left: -10px;
+        right: -10px;
+        bottom: -10px;
+        border-radius: 50%;
+        border: 8px solid;
+        border-color: var(--score-color);
+        opacity: 0.3;
+    }
+
+    .score-circle.excellent {
+        --score-color: #00C853;
+        background: rgba(0, 200, 83, 0.1);
+    }
+
+    .score-circle.good {
+        --score-color: #00D9FF;
+        background: rgba(0, 217, 255, 0.1);
+    }
+
+    .score-circle.average {
+        --score-color: #FFB300;
+        background: rgba(255, 179, 0, 0.1);
+    }
+
+    .score-circle.poor {
+        --score-color: #FF5252;
+        background: rgba(255, 82, 82, 0.1);
+    }
+
+    .score-value {
+        font-size: 3.5rem;
+        font-weight: 700;
+        color: var(--score-color);
+    }
+
+    .score-label {
+        color: #A0AEC0;
+        font-size: 0.875rem;
+    }
+
+    .score-details {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+    }
+
+    .detail-item {
+        padding: 1rem;
+        background: rgba(10, 15, 28, 0.5);
+        border-radius: 12px;
+    }
+
+    .detail-value {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #FFFFFF;
+    }
+
+    .detail-label {
+        color: #6B7280;
+        font-size: 0.75rem;
+    }
+
+    .detail-item.critical .detail-value { color: #FF5252; }
+    .detail-item.high .detail-value { color: #FF6B6B; }
+    .detail-item.medium .detail-value { color: #FFB300; }
+    .detail-item.low .detail-value { color: #00D9FF; }
+
+    /* Summary Card */
+    .summary-card {
+        background: rgba(21, 31, 46, 0.8);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 20px;
+        padding: 2rem;
+    }
+
+    .summary-card h2 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #FFFFFF;
+        margin-bottom: 1rem;
+    }
+
+    .summary-text {
+        color: #A0AEC0;
+        line-height: 1.7;
+        margin-bottom: 1.5rem;
+    }
+
+    .suggestions-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .suggestion-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 1rem;
+        background: rgba(10, 15, 28, 0.5);
+        border-radius: 12px;
+        color: #A0AEC0;
+    }
+
+    .suggestion-item i {
+        color: #00D9FF;
+    }
+
+    /* Issues Section */
+    .issues-section {
+        background: rgba(21, 31, 46, 0.8);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 20px;
+        overflow: hidden;
+        margin-bottom: 2rem;
+    }
+
+    .issues-header {
+        padding: 1.5rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .issues-header h2 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #FFFFFF;
+    }
+
+    .issues-count {
+        padding: 0.5rem 1rem;
+        background: rgba(255, 82, 82, 0.2);
+        border-radius: 20px;
+        color: #FF5252;
+        font-size: 0.875rem;
+        font-weight: 600;
+    }
+
+    .issues-list {
+        max-height: 500px;
+        overflow-y: auto;
+    }
+
+    .issue-item {
+        padding: 1.5rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        display: flex;
+        gap: 1rem;
+    }
+
+    .issue-item:last-child {
+        border-bottom: none;
+    }
+
+    .issue-severity {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+        flex-shrink: 0;
+    }
+
+    .issue-severity.critical {
+        background: rgba(255, 82, 82, 0.2);
+        color: #FF5252;
+    }
+
+    .issue-severity.high {
+        background: rgba(255, 107, 107, 0.2);
+        color: #FF6B6B;
+    }
+
+    .issue-severity.medium {
+        background: rgba(255, 179, 0, 0.2);
+        color: #FFB300;
+    }
+
+    .issue-severity.low {
+        background: rgba(0, 217, 255, 0.2);
+        color: #00D9FF;
+    }
+
+    .issue-content {
+        flex: 1;
+    }
+
+    .issue-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 0.5rem;
+    }
+
+    .issue-category {
+        padding: 0.25rem 0.75rem;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 20px;
+        color: #A0AEC0;
+        font-size: 0.75rem;
+    }
+
+    .issue-message {
+        color: #FFFFFF;
+        font-size: 0.875rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .issue-suggestion {
+        color: #6B7280;
+        font-size: 0.75rem;
+        font-style: italic;
+    }
+
+    .issue-line {
+        color: #6B7280;
+        font-size: 0.75rem;
+    }
+
+    /* Code Preview */
+    .code-section {
+        background: rgba(21, 31, 46, 0.8);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 20px;
+        overflow: hidden;
+    }
+
+    .code-header {
+        padding: 1.5rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .code-header h2 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #FFFFFF;
+    }
+
+    .code-preview {
+        padding: 1.5rem;
+        background: rgba(10, 15, 28, 0.8);
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.875rem;
+        line-height: 1.6;
+        color: #A0AEC0;
+        white-space: pre-wrap;
+        max-height: 300px;
+        overflow-y: auto;
+    }
+
+    @media (max-width: 768px) {
+        .score-section {
+            grid-template-columns: 1fr;
+        }
+
+        .page-header {
+            flex-direction: column;
+            gap: 1rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="results-page">
+    <div class="results-container">
+        <div class="page-header">
+            <h1><i class="fas fa-check-circle"></i> Review Complete</h1>
+            <div class="header-actions">
+                <a href="{% url 'review' %}" class="btn-secondary">
+                    <i class="fas fa-plus"></i> New Review
+                </a>
+                <a href="{% url 'dashboard' %}" class="btn-secondary">
+                    <i class="fas fa-home"></i> Dashboard
+                </a>
+            </div>
+        </div>
+
+        <!-- Score Section -->
+        <div class="score-section">
+            <div class="score-card">
+                <div class="score-circle {% if result.score >= 90 %}excellent{% elif result.score >= 70 %}good{% elif result.score >= 50 %}average{% else %}poor{% endif %}">
+                    <span class="score-value">{{ result.score }}</span>
+                    <span class="score-label">out of 100</span>
+                </div>
+                <div class="score-details">
+                    <div class="detail-item critical">
+                        <div class="detail-value">{{ result.issues_by_severity.critical|default:"0" }}</div>
+                        <div class="detail-label">Critical</div>
+                    </div>
+                    <div class="detail-item high">
+                        <div class="detail-value">{{ result.issues_by_severity.high|default:"0" }}</div>
+                        <div class="detail-label">High</div>
+                    </div>
+                    <div class="detail-item medium">
+                        <div class="detail-value">{{ result.issues_by_severity.medium|default:"0" }}</div>
+                        <div class="detail-label">Medium</div>
+                    </div>
+                    <div class="detail-item low">
+                        <div class="detail-value">{{ result.issues_by_severity.low|default:"0" }}</div>
+                        <div class="detail-label">Low</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="summary-card">
+                <h2><i class="fas fa-chart-pie"></i> Analysis Summary</h2>
+                <p class="summary-text">{{ result.summary }}</p>
+                <h3 style="color: #FFFFFF; font-size: 1rem; margin-bottom: 1rem;">Suggestions</h3>
+                <div class="suggestions-list">
+                    {% for suggestion in result.suggestions %}
+                    <div class="suggestion-item">
+                        <i class="fas fa-lightbulb"></i>
+                        <span>{{ suggestion }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Issues Section -->
+        {% if result.issues %}
+        <div class="issues-section">
+            <div class="issues-header">
+                <h2><i class="fas fa-bug"></i> Issues Found</h2>
+                <span class="issues-count">{{ result.total_issues }} Issues</span>
+            </div>
+            <div class="issues-list">
+                {% for issue in result.issues %}
+                <div class="issue-item">
+                    <div class="issue-severity {{ issue.severity }}">
+                        {% if issue.severity == 'critical' %}
+                        <i class="fas fa-times-circle"></i>
+                        {% elif issue.severity == 'high' %}
+                        <i class="fas fa-exclamation-circle"></i>
+                        {% elif issue.severity == 'medium' %}
+                        <i class="fas fa-exclamation-triangle"></i>
+                        {% else %}
+                        <i class="fas fa-info-circle"></i>
+                        {% endif %}
+                    </div>
+                    <div class="issue-content">
+                        <div class="issue-header">
+                            <span class="issue-category">{{ issue.category }}</span>
+                            {% if issue.line %}
+                            <span class="issue-line">Line {{ issue.line }}</span>
+                            {% endif %}
+                        </div>
+                        <p class="issue-message">{{ issue.message }}</p>
+                        {% if issue.suggestion %}
+                        <p class="issue-suggestion"><i class="fas fa-wrench"></i> {{ issue.suggestion }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% else %}
+        <div class="issues-section">
+            <div class="issues-header">
+                <h2><i class="fas fa-check-circle"></i> No Issues Found</h2>
+            </div>
+            <div style="padding: 3rem; text-align: center;">
+                <i class="fas fa-trophy" style="font-size: 4rem; color: #00C853; margin-bottom: 1rem;"></i>
+                <p style="color: #A0AEC0; font-size: 1.125rem;">Great job! Your code passed all checks.</p>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Code Preview -->
+        <div class="code-section">
+            <div class="code-header">
+                <h2><i class="fas fa-code"></i> Reviewed Code</h2>
+            </div>
+            <div class="code-preview">{{ code }}</div>
+        </div>
+    </div>
+</div>
+{% endblock %}

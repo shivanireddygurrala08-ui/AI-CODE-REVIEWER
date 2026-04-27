@@ -1,0 +1,410 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Code Review - AI Code Reviewer{% endblock %}
+
+{% block extra_css %}
+<style>
+    .review-page {
+        min-height: 100vh;
+        padding: 2rem;
+        background: #0A0F1C;
+    }
+
+    .review-container {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .page-header {
+        margin-bottom: 2rem;
+    }
+
+    .page-header h1 {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #FFFFFF;
+        margin-bottom: 0.5rem;
+    }
+
+    .page-header p {
+        color: #A0AEC0;
+    }
+
+    .review-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+    }
+
+    .review-card {
+        background: rgba(21, 31, 46, 0.8);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 20px;
+        overflow: hidden;
+    }
+
+    .card-header {
+        padding: 1.5rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .card-header h2 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #FFFFFF;
+    }
+
+    .language-selector {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .lang-btn {
+        padding: 0.5rem 1rem;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+        color: #A0AEC0;
+        font-size: 0.875rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .lang-btn:hover,
+    .lang-btn.active {
+        background: rgba(0, 217, 255, 0.2);
+        border-color: #00D9FF;
+        color: #00D9FF;
+    }
+
+    .card-body {
+        padding: 1.5rem;
+    }
+
+    .code-editor {
+        width: 100%;
+        min-height: 400px;
+        padding: 1rem;
+        background: rgba(10, 15, 28, 0.8);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        color: #FFFFFF;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.875rem;
+        line-height: 1.6;
+        resize: vertical;
+    }
+
+    .code-editor:focus {
+        outline: none;
+        border-color: #00D9FF;
+    }
+
+    .code-editor::placeholder {
+        color: #6B7280;
+    }
+
+    .editor-toolbar {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .toolbar-btn {
+        padding: 0.5rem 0.75rem;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+        color: #A0AEC0;
+        font-size: 0.875rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .toolbar-btn:hover {
+        background: rgba(0, 217, 255, 0.1);
+        color: #00D9FF;
+    }
+
+    .review-actions {
+        display: flex;
+        gap: 1rem;
+        margin-top: 1.5rem;
+    }
+
+    .btn-primary {
+        flex: 1;
+        padding: 1rem;
+        background: linear-gradient(135deg, #00D9FF 0%, #7B2CBF 100%);
+        border: none;
+        border-radius: 12px;
+        color: #0A0F1C;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 30px rgba(0, 217, 255, 0.3);
+    }
+
+    .btn-secondary {
+        padding: 1rem 2rem;
+        background: transparent;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 12px;
+        color: #FFFFFF;
+        font-size: 1rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .btn-secondary:hover {
+        border-color: #00D9FF;
+        color: #00D9FF;
+    }
+
+    /* Tips Panel */
+    .tips-panel {
+        background: rgba(21, 31, 46, 0.8);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 20px;
+        padding: 1.5rem;
+    }
+
+    .tips-panel h3 {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: #FFFFFF;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .tips-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .tip-item {
+        display: flex;
+        gap: 1rem;
+        padding: 1rem;
+        background: rgba(10, 15, 28, 0.5);
+        border-radius: 12px;
+    }
+
+    .tip-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+        flex-shrink: 0;
+    }
+
+    .tip-icon.security {
+        background: rgba(255, 82, 82, 0.2);
+        color: #FF5252;
+    }
+
+    .tip-icon.performance {
+        background: rgba(0, 217, 255, 0.2);
+        color: #00D9FF;
+    }
+
+    .tip-icon.style {
+        background: rgba(123, 44, 191, 0.2);
+        color: #7B2CBF;
+    }
+
+    .tip-content h4 {
+        color: #FFFFFF;
+        font-size: 0.875rem;
+        font-weight: 500;
+        margin-bottom: 0.25rem;
+    }
+
+    .tip-content p {
+        color: #6B7280;
+        font-size: 0.75rem;
+        line-height: 1.5;
+    }
+
+    @media (max-width: 768px) {
+        .review-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="review-page">
+    <div class="review-container">
+        <div class="page-header">
+            <h1><i class="fas fa-microscope"></i> AI Code Review</h1>
+            <p>Submit your code for comprehensive AI-powered analysis and get instant feedback.</p>
+        </div>
+
+        <form method="POST" action="{% url 'review' %}">
+            {% csrf_token %}
+            
+            <div class="review-grid">
+                <!-- Code Input -->
+                <div class="review-card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-code"></i> Code Editor</h2>
+                        <div class="language-selector">
+                            <button type="button" class="lang-btn active" data-lang="python">Python</button>
+                            <button type="button" class="lang-btn" data-lang="javascript">JS</button>
+                            <button type="button" class="lang-btn" data-lang="java">Java</button>
+                            <button type="button" class="lang-btn" data-lang="cpp">C++</button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="editor-toolbar">
+                            <button type="button" class="toolbar-btn" title="Format Code">
+                                <i class="fas fa-align-left"></i>
+                            </button>
+                            <button type="button" class="toolbar-btn" title="Clear">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                            <button type="button" class="toolbar-btn" title="Copy">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </div>
+                        <textarea name="code_content" class="code-editor" placeholder="# Paste your code here for analysis...
+
+def example_function():
+    # Your code here
+    for i in range(10):
+        print(i)
+    return True
+
+# The AI will analyze:
+# - Syntax errors
+# - Security vulnerabilities
+# - Code style issues
+# - Performance problems
+# - Best practices
+# - Potential bugs"></textarea>
+                        <input type="hidden" name="language" id="selectedLanguage" value="python">
+                        
+                        <div class="review-actions">
+                            <button type="submit" class="btn-primary">
+                                <i class="fas fa-search"></i> Analyze Code
+                            </button>
+                            <button type="button" class="btn-secondary" onclick="loadSampleCode()">
+                                <i class="fas fa-flask"></i> Try Sample
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tips Panel -->
+                <div class="tips-panel">
+                    <h3><i class="fas fa-lightbulb"></i> Review Tips</h3>
+                    <div class="tips-list">
+                        <div class="tip-item">
+                            <div class="tip-icon security">
+                                <i class="fas fa-shield-alt"></i>
+                            </div>
+                            <div class="tip-content">
+                                <h4>Security Analysis</h4>
+                                <p>Detects SQL injection, hardcoded credentials, eval usage, and other security risks.</p>
+                            </div>
+                        </div>
+                        <div class="tip-item">
+                            <div class="tip-icon performance">
+                                <i class="fas fa-tachometer-alt"></i>
+                            </div>
+                            <div class="tip-content">
+                                <h4>Performance Tips</h4>
+                                <p>Identifies inefficient loops, string concatenation, and other performance issues.</p>
+                            </div>
+                        </div>
+                        <div class="tip-item">
+                            <div class="tip-icon style">
+                                <i class="fas fa-code"></i>
+                            </div>
+                            <div class="tip-content">
+                                <h4>Code Style</h4>
+                                <p>Checks PEP 8 compliance, line length, naming conventions, and documentation.</p>
+                            </div>
+                        </div>
+                        <div class="tip-item">
+                            <div class="tip-icon" style="background: rgba(0, 200, 83, 0.2); color: #00C853;">
+                                <i class="fas fa-bug"></i>
+                            </div>
+                            <div class="tip-content">
+                                <h4>Bug Detection</h4>
+                                <p>Finds common bugs like mutable defaults, shadowing built-ins, and unused variables.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Language selector
+    document.querySelectorAll('.lang-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            document.getElementById('selectedLanguage').value = this.dataset.lang;
+        });
+    });
+
+    // Load sample code
+    function loadSampleCode() {
+        const sampleCode = `# Sample Python Code with Issues
+
+def calculate_sum(items=[]):  # Bug: Mutable default argument
+    total = 0
+    result = ""  # Bug: Unused variable
+    
+    for item in items:
+        total = total + item  # Performance: Can use sum()
+    
+    return total
+
+def process_data(user_input):
+    # Security: SQL injection vulnerability
+    query = "SELECT * FROM users WHERE name = '" + user_input + "'"
+    eval(user_input)  # Security: Dangerous eval usage
+    
+    print("Processing complete")  # Style: Use logging instead
+
+# TODO: Fix these issues
+# FIXME: Add error handling
+
+class MyClass:
+    def __init__(self):
+        self.list = []  # Bug: Shadowing built-in
+    
+    def method(self):
+        pass
+`;
+        document.querySelector('.code-editor').value = sampleCode;
+    }
+</script>
+{% endblock %}
